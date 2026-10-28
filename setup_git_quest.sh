@@ -19,22 +19,47 @@ cat > START-HERE.txt << 'TXT'
 WELCOME, TIME TRAVELER!
 
 This folder is a Git repository. Git has been watching it and saving its history.
-Your mission: follow the clues. Do the levels in order.
+Your mission: follow the clues, level by level.
 
+HOW TO PLAY
+  - Lines that start with "Type:" are commands. Type them, then press Enter.
+  - After each command, read what Git prints on the screen.
+  - To read a clue file, type:   cat FILE-NAME
+
+=================================================
 LEVEL 1 - LOOK AROUND
+=================================================
+Step 1.  Type:   git status
+         It means: "What does Git see right now?"
+         You should see: nothing to commit, working tree clean
 
-  1. Type:   git status
-     In plain words: "What does Git see right now?"
-     Everything is clean: nothing changed since the last save point.
+Step 2.  Type:   git log --oneline
+         It means: "Show me all the save points."
+         Each line is one save point: a short code, then a label.
 
-  2. Type:   git log --oneline
-     In plain words: "Show me all the save points."
-     Each line is one save point: a short code, then a label.
+Step 3.  Find the line whose label starts with the word KEY.
+         Read it carefully. It tells you where the next clue is.
+         ("Timeline" is another word for "branch".)
 
-  3. One label starts with the word KEY. Read it.
-     It tells you where to go next.
+=================================================
+LEVEL 2 - TRAVEL BETWEEN TIMELINES
+=================================================
+Step 1.  Type:   git branch
+         It means: "Show me all the timelines."
+         The star * marks the one you are on now.
 
-Do NOT open LEVEL-4.txt yet. Wait until you reach level 4.
+Step 2.  Type:   git switch cave
+         It means: "Travel to the timeline called cave."
+         You should see: Switched to branch 'cave'
+
+Step 3.  Type:   ls
+         It means: "List the files here."
+         A new file has appeared!
+
+Step 4.  Type:   cat CLUE-2.txt
+         It is your next clue. Read it.
+
+(Do not open LEVEL-4.txt yet. Wait until you reach level 4.)
 TXT
 qm add START-HERE.txt
 qm commit -q -m "Add the map of the island"
@@ -56,31 +81,38 @@ X marks the spot.
 The treasure is hidden under the old oak tree.
 TXT
 cat > LEVEL-4.txt << 'TXT'
+=================================================
 LEVEL 4 - UNDO A MISTAKE
-
+=================================================
 Sometimes a change is wrong. An AI agent can also change your files in a way you do not want.
 Git lets you see exactly what changed, and undo it. Let us practise.
 
-  1. Pretend you (or an agent) made a bad change. Type:
-        echo "OOPS, a vandal was here" >> treasure-map.txt
-     In plain words: "Add a line at the end of the map." Two arrows add, one arrow replaces.
+Step 1.  Type:   echo "OOPS, a vandal was here" >> treasure-map.txt
+         It means: "Add a bad line at the end of the map."
+         (Two arrows >> add a line. One arrow > would replace the whole file.)
 
-  2. Type:   git status
-     In plain words: "What does Git see?"
-     It says "modified": a saved file was changed.
+Step 2.  Type:   git status
+         It means: "What does Git see now?"
+         You should see: modified: treasure-map.txt
 
-  3. Type:   git diff
-     In plain words: "Show me exactly what changed."
-     Lines that start with + are new. This is how you check an agent's work.
+Step 3.  Type:   git diff
+         It means: "Show me exactly what changed."
+         Lines that start with + are new. This is how you check what an agent did.
 
-  4. Type:   git restore treasure-map.txt
-     In plain words: "Go back to the last save point for this file."
+Step 4.  Type:   git restore treasure-map.txt
+         It means: "Go back to the last save point for this file."
 
-  5. Type:   cat treasure-map.txt
-     The vandal is gone. Type  git status  again: clean.
+Step 5.  Type:   cat treasure-map.txt
+         The vandal line is gone.
 
+Step 6.  Type:   git status
+         It is clean again.
+
+=================================================
 QUEST COMPLETE!
-Type:   bash ~/git-quest-check.sh   and show it to your TA.
+=================================================
+Type:   bash ~/git-quest-check.sh
+and show the screen to your TA.
 TXT
 qm add treasure-map.txt LEVEL-4.txt
 qm commit -q -m "Add the treasure map"
@@ -90,31 +122,40 @@ qm switch -q -c cave
 cat > CLUE-2.txt << 'TXT'
 LEVEL 2 COMPLETE - You travelled to another timeline!
 
-Look: this file exists only here, on the cave timeline.
-(Type  git switch main  later and see that it disappears. That is what a branch is.)
+Look: the file CLUE-2.txt exists only here, on the cave timeline.
+You will see it disappear when you go back to main. That is what a branch is.
 
+=================================================
 LEVEL 3 - LEAVE YOUR MARK
-Make your own save point on this timeline. Do it step by step:
+=================================================
+You will make your own save point, on this timeline.
 
-  1. Create a file with your name. Type:
-        echo "Your Name" > explorer.txt
-     In plain words: "Write my name into a new file." One arrow creates the file.
+Step 1.  Type:   echo "Your Name" > explorer.txt
+         It means: "Write my name into a new file called explorer.txt."
+         (Replace Your Name with your own name. Keep the quotation marks.)
 
-  2. Type:   git status
-     It says "untracked": Git sees the file, but does not save it yet.
+Step 2.  Type:   git status
+         It means: "What does Git see now?"
+         You should see: explorer.txt is "untracked". Git sees it, but does not save it yet.
 
-  3. Type:   git add explorer.txt
-     In plain words: "Put the file in the basket."
+Step 3.  Type:   git add explorer.txt
+         It means: "Put the file in the basket."
 
-  4. Type:   git commit -m "Explorer arrived at the cave"
-     In plain words: "Take the photo, with a label." You may write your own label.
+Step 4.  Type:   git commit -m "Explorer arrived at the cave"
+         It means: "Take the photo, with a label." You may write your own label.
 
-  5. Type:   git log --oneline
-     Your save point is at the top of the list.
+Step 5.  Type:   git log --oneline
+         Your save point is now at the top of the list.
 
-Now go back to the main timeline:   git switch main
-Type  ls : where did explorer.txt go? It lives on the cave timeline.
-Then read the file  LEVEL-4.txt  on main.
+Step 6.  Type:   git switch main
+         It means: "Travel back to the main timeline."
+
+Step 7.  Type:   ls
+         Where did explorer.txt and CLUE-2.txt go?
+         They live on the cave timeline. You left them there.
+
+Step 8.  Type:   cat LEVEL-4.txt
+         It is your last clue.
 TXT
 qm add CLUE-2.txt
 qm commit -q -m "Add the cave clue"
