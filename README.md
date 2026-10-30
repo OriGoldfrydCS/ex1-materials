@@ -12,7 +12,7 @@ curl, and standard command-line utilities. No Python packages, model download,
 AI subscription, or API key is needed for these games. The agent game is scripted.
 Use any text editor for the Markdown files; VS Code is optional.
 
-## 1. Terminal Treasure Hunt (10 minutes)
+## 1. Terminal Treasure Hunt 
 
 ```bash
 cd ~
@@ -25,7 +25,7 @@ cat README.txt
 Follow the clues. Finish when `golden_key.txt` is in `~/treasure/done` and no longer
 in `~/treasure/mountain`. Explain which command moved it.
 
-## 2. Git Quest (15 minutes)
+## 2. Git Quest 
 
 ```bash
 cd ~
@@ -55,7 +55,7 @@ git config user.email "your.email@example.com"
 Replace the example values with your own. Retry the commit. These settings are local
 to the current repository. If your project later needs them, configure them there too.
 
-## 3. Be the Harness (12 minutes, followed by discussion)
+## 3. Be the Harness
 
 ```bash
 cd ~
