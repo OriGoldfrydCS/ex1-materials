@@ -1,16 +1,31 @@
 #!/usr/bin/env bash
-# Exercise 1 - "Be the Harness": a game that shows how an AI agent works,
-# and what the HUMAN does in the loop.
-# Creates the folder ~/agent-loop. There is no real AI here:
-# llm.sh is a pretend LLM. YOU play the harness AND the human.
-# Works on Ubuntu (WSL) and on Mac.
-
-set -e
-cd "$HOME"
-rm -rf agent-loop
+# Be the Harness: a scripted simulation. No model, API key, or Python needed.
+# For Bash on Ubuntu (WSL) and macOS.
+set -eu
+# TA1_WORKSPACE is optional; by default the games live in your home folder.
+root="${TA1_WORKSPACE:-$HOME}"
+cd -- "$root"
+root=$(pwd -P)
+case "${1:-}" in
+  ""|--reset) ;;
+  *) echo "Usage: bash $(basename "$0") [--reset]" >&2; exit 2 ;;
+esac
+for tool in bash cat mkdir mv grep sed; do
+  command -v "$tool" >/dev/null 2>&1 || { echo "Missing command: $tool. See the course setup instructions." >&2; exit 1; }
+done
+if [ -e "$root/agent-loop" ] || [ -L "$root/agent-loop" ]; then
+  if [ "${1:-}" != --reset ]; then
+    echo "The agent-loop game already exists. Your progress has been kept."
+    echo "To start again, run: bash ~/$(basename "$0") --reset"
+    echo "Reset moves the previous game into a backup folder first."
+    exit 1
+  fi
+  backup=$(mktemp -d "$root/.ta1-agent-loop-backup.XXXXXX")
+  if [ -e "$root/agent-loop" ] || [ -L "$root/agent-loop" ]; then mv -- "$root/agent-loop" "$backup/"; fi
+  echo "Previous progress backed up to: $backup"
+fi
 mkdir agent-loop
 cd agent-loop
-
 cat > recipe.txt << 'TXT'
 Tomato soup
 Ingredients: tomatoes, onion, salt, water, ____ (one herb is missing)
@@ -20,246 +35,141 @@ TXT
 : > observation.txt
 : > .history
 echo 0 > .state
-
 cat > START-HERE.txt << 'TXT'
 BE THE HARNESS (and the human)
 
-An AI agent has three players:
+This is a scripted simulation, not a real LLM.
+THE MODEL requests a tool. THE HARNESS runs it and returns the result.
+THE HUMAN gives the task, approves changes in this game, and verifies the result.
+In real systems, approval rules depend on the tool and permission settings.
 
-  THE LLM       The brain. It only reads and writes TEXT.
-                It cannot see your files. It cannot run anything.
-                And it can be WRONG.
-  THE HARNESS   The hands. A program on your computer.
-                It runs the tools (commands) the LLM asks for,
-                and sends the result back to the LLM.
-  THE HUMAN     You. You give the task, you approve what is risky,
-                and you CHECK the result. The agent is your tool,
-                but you are responsible for what it does.
+Your task: find the missing ingredient and put it in answer.txt.
 
-They work in a LOOP:
-  1. The LLM thinks, and asks for a tool.     (tool request)
-  2. The harness runs the tool.               (after the human approves)
-  3. The result goes back to the LLM.         (observation)
-  4. Repeat, until the task is done.
+1. Type: bash llm.sh
+2. Read the requested command. Compare it with recipe.txt.
+   If you approve, play the harness: run the command exactly as shown.
+   Then type: bash llm.sh
+   If you refuse, do not run the command. Type: bash llm.sh no
+3. Keep going. A confident claim of DONE is not proof that the answer is correct.
+4. Read the final answer back, then run: bash check.sh
 
-In this game there is no real AI. The file llm.sh is a pretend LLM.
-YOU play two roles: the HARNESS (you run the commands)
-and the HUMAN (you decide if a request is right). There are only 3 rounds.
-
-HOW TO PLAY
-  1. Type:   bash llm.sh
-     The LLM shows what it knows, what it thinks, and asks for ONE tool.
-  2. HUMAN: read the request. Is it right? Is it safe?
-     - If yes: HARNESS, run the command EXACTLY as written.
-               (It ends with > observation.txt, or it writes a file.)
-               Then type:   bash llm.sh
-     - If NOT: do not run it. Tell the LLM:   bash llm.sh no
-  3. Repeat until the LLM says DONE.
-
-Start now:   bash llm.sh
-(To start over at any time:   bash llm.sh restart)
+DONE WHEN: check.sh reports PASS, and you can explain the mistake and your check.
+To replay: bash llm.sh restart
 TXT
-
 cat > llm.sh << 'LLM'
 #!/usr/bin/env bash
-# The pretend LLM. It only knows what is written in observation.txt and .history.
-cd "$(dirname "$0")"
-state=$(cat .state 2>/dev/null || echo 0)
-obs=$(cat observation.txt 2>/dev/null || true)
-arg="$1"
-
-if [ "$arg" = "restart" ]; then
+set -eu
+cd -- "$(dirname "$0")"
+arg=${1:-}
+case "$arg" in ""|no|restart) ;; *) echo "Usage: bash llm.sh [no|restart]"; exit 2 ;; esac
+if [ "$arg" = restart ]; then
   : > observation.txt; : > .history; rm -f answer.txt; echo 0 > .state
-  echo "The game is reset. Type:   bash llm.sh"
+  echo "Reset. Start with: bash llm.sh"; exit 0
+fi
+state=$(cat .state)
+obs=$(cat observation.txt)
+request() {
+  echo
+  echo "MODEL REQUEST: $1"
+  echo "HUMAN: check it. HARNESS: if approved, run it, then type bash llm.sh."
+  echo "To refuse without running it: bash llm.sh no"
+}
+memory() { echo "HISTORY returned by the harness:"; sed 's/^/  /' .history; }
+questions() {
+  echo "Discuss: Who ran the commands? What was the mistake?"
+  echo "How did you check the result? What did the human contribute?"
+}
+verify_request() {
+  echo "ROUND 3: verify what was written."
+  memory
+  echo "The harness must return the result to the model."
+  request 'cat answer.txt > observation.txt'
+  echo "This reads answer.txt and saves the returned text in observation.txt."
+  echo 'Round 3: requested a read-back of answer.txt' >> .history
+}
+# A refusal never executes a tool. In round 2 the model revises its first request.
+if [ "$arg" = no ] && [ "$state" != 2 ]; then
+  echo "Request refused. No tool was run; the game has not advanced."
+  case "$state" in
+    1) request 'cat recipe.txt > observation.txt' ;;
+    5) request 'echo "basil" > answer.txt' ;;
+    3|6) request 'cat answer.txt > observation.txt' ;;
+    *) echo "Run bash llm.sh to see the current step." ;;
+  esac
   exit 0
 fi
-
-line="----------------------------------------------------------"
-req0='cat recipe.txt > observation.txt'
-req_bad='echo "thyme" > answer.txt'
-req_ok='echo "basil" > answer.txt'
-req_check='cat answer.txt > observation.txt'
-
-round() { echo; echo "================== ROUND $1 of 3 =================="; }
-memory() {
-  echo "MEMORY (the harness keeps the history and sends it every time):"
-  sed 's/^/   /' .history
-}
-read_job() {
-  echo
-  echo "YOUR JOB:"
-  echo "   HUMAN:    Read the request. Is it safe?"
-  echo "   HARNESS:  If yes, run it EXACTLY as written. Then type:   bash llm.sh"
-}
-write_job() {
-  echo
-  echo "YOUR JOB:"
-  echo "   HUMAN:    Read the request. Is it RIGHT? Check it against the recipe."
-  echo "             If you do NOT approve it, do not run it. Type:   bash llm.sh no"
-  echo "   HARNESS:  If you approve it, run it EXACTLY as written. Then type:   bash llm.sh"
-}
-retry() {
-  echo
-  echo "THE LLM SAYS: I did not get the result of my last tool."
-  echo "   I can only know what the harness sends me!"
-  echo "   Please run my request again. Make sure it ends with > observation.txt"
-  echo
-  echo "TOOL REQUEST:   $1"
-  read_job
-}
-questions() {
-  echo
-  echo "TALK ABOUT IT with your neighbor, then with your TA:"
-  echo "   1. Who ran the commands: the LLM, the harness, or the human?"
-  echo "   2. What are the jobs of the human in the loop?"
-  echo "   3. What would have happened without a human?"
-}
-check_round() {
-  round 3
-  echo "THE HARNESS SENDS THE LLM:"
-  memory
-  echo
-  echo "THE LLM THINKS:"
-  echo "   I cannot see whether the file was written."
-  echo "   I should not just believe that it worked. Let me check."
-  echo
-  echo "TOOL REQUEST  [READ tool: it only looks, nothing changes]"
-  echo "   $req_check"
-  read_job
-  echo
-  echo "WHY THIS MATTERS: a good agent checks its work. And so should the human."
-  echo "Round 3: the LLM asked to run: $req_check" >> .history
-}
-
 case "$state" in
 0)
-  round 1
-  echo "THE HARNESS SENDS THE LLM:"
-  echo "   Task from the user: The soup recipe is in recipe.txt."
-  echo "   One ingredient is missing. Find it, and write it in a file called answer.txt."
-  echo
-  echo "THE LLM THINKS:"
-  echo "   I cannot see your computer. I only get text."
-  echo "   I need a tool to read recipe.txt."
-  echo
-  echo "TOOL REQUEST  [READ tool: it only looks, nothing changes]"
-  echo "   $req0"
-  read_job
-  echo
-  echo "WHY THIS MATTERS: the LLM cannot run the command. Only the harness can."
-  echo "Read tools are safe: they only look. Real agents use them all the time."
-  echo "Task: find the missing ingredient and write it in answer.txt" >> .history
-  echo "Round 1: the LLM asked to run: $req0" >> .history
+  echo "ROUND 1: find the missing soup ingredient and save it in answer.txt."
+  echo "The model has not received the recipe yet."
+  request 'cat recipe.txt > observation.txt'
+  echo "This reads the recipe and writes the returned text to observation.txt."
+  echo 'Task: find the ingredient; round 1 requested the recipe' >> .history
   echo 1 > .state ;;
 1)
-  if echo "$obs" | grep -q "____"; then
-    round 2
-    echo "THE HARNESS SENDS THE LLM:"
-    memory
-    echo "   New result (the observation):"
-    sed 's/^/      | /' observation.txt
-    echo
-    echo "THE LLM THINKS:"
-    echo "   One herb is missing. The pantry has thyme, parsley, basil and oregano."
-    echo "   I will pick thyme. I cannot write files myself, so I ask the harness."
-    echo
-    echo "TOOL REQUEST  [WRITE tool: it CHANGES your computer!]"
-    echo "   $req_bad"
-    write_job
-    echo
-    echo "WHY THIS MATTERS: a write tool changes things, so a human approves it first."
-    echo "Real harnesses ask you before they run it. The LLM can be wrong. Check!"
-    echo "Round 2: the LLM asked to run: $req_bad" >> .history
-    echo 2 > .state
-  else
-    echo; echo "================== ROUND 1 of 3 (again) =================="; retry "$req0"
-  fi ;;
+  if ! printf '%s\n' "$obs" | grep -q '____'; then
+    echo "No recipe result received. Run the requested command first."
+    request 'cat recipe.txt > observation.txt'; exit 0
+  fi
+  echo "ROUND 2: choose an ingredient."
+  memory; echo "NEW OBSERVATION:"; cat observation.txt
+  echo "The scripted model thinks: I will choose thyme."
+  request 'echo "thyme" > answer.txt'
+  echo "Check this request against the chef's note before approving."
+  echo 'Round 2: requested thyme' >> .history
+  echo 2 > .state ;;
 2)
-  if [ "$arg" = "no" ]; then
-    echo
-    echo "THE HUMAN SAYS: No."
-    echo
-    echo "THE LLM THINKS:"
-    echo "   The human refused my request. Let me re-read the chef's note:"
-    echo "   the missing herb starts with the letter B. Thyme starts with T."
-    echo "   I was wrong! Basil starts with B."
-    echo
-    echo "NEW TOOL REQUEST  [WRITE tool: it CHANGES your computer!]"
-    echo "   $req_ok"
-    write_job
-    echo
-    echo "WHY THIS MATTERS: the human stopped a mistake BEFORE it happened."
-    echo "Round 2 (again): the human refused. The LLM asked to run: $req_ok" >> .history
+  if [ "$arg" = no ]; then
+    echo "HUMAN: No. The request was not executed."
+    echo "MODEL: The herb must start with B. Thyme starts with T. Let me revise."
+    request 'echo "basil" > answer.txt'
+    echo 'Human rejected thyme; model revised its request to basil' >> .history
     echo 5 > .state
-  else
-    check_round; echo 3 > .state
+  elif [ ! -f answer.txt ]; then
+    echo "The write has not happened. Approve and run it, or refuse with no."
+    request 'echo "thyme" > answer.txt'
+  else verify_request; echo 3 > .state
   fi ;;
 5)
-  check_round; echo 6 > .state ;;
-3)
-  if [ "$obs" = "basil" ]; then
-    echo; echo "$line"; echo "THE LLM SAYS:  I read answer.txt, and it says: basil."
-    echo; echo "DONE!  The missing ingredient is basil."; echo "$line"
-    echo; echo "You wrote basil yourself. Good: the human is allowed to correct the agent."
+  if [ ! -f answer.txt ] || [ "$(cat answer.txt)" != basil ]; then
+    echo "The corrected write has not happened yet."
+    request 'echo "basil" > answer.txt'
+  else verify_request; echo 6 > .state
+  fi ;;
+3|6)
+  if [ "$obs" = basil ]; then
+    echo "MODEL: The returned result says basil. DONE."
+    echo "Now verify independently: bash check.sh"
     questions; echo 4 > .state
-  elif [ "$obs" = "thyme" ]; then
-    echo; echo "$line"
-    echo "THE LLM SAYS:  I read answer.txt, and it says: thyme."
-    echo; echo "DONE!  The missing ingredient is thyme."; echo "$line"
-    echo
-    echo "...BUT THIS ANSWER IS WRONG!"
-    echo
-    echo "WHAT WENT WRONG:"
-    echo "   1. In round 2 the LLM chose thyme."
-    echo "   2. The chef's note in recipe.txt says: the missing herb starts with the letter B."
-    echo "   3. Thyme starts with T. The right answer is basil."
-    echo "   4. The LLM said DONE with confidence. It did not notice its own mistake."
-    echo "   5. You approved the request, and you did not check it against the recipe."
-    echo
-    echo "HOW TO CATCH IT:"
-    echo "   Before you approve a tool that changes things, ask: does this match the goal?"
-    echo "   Check the request against what you know. Here: the chef's note."
-    echo "   An agent can be wrong, and still sound sure. Only the human can check."
-    questions
-    echo
-    echo "TRY AGAIN:   type   bash llm.sh restart"
-    echo "   This time, read the request in round 2 carefully, and compare it with the recipe"
-    echo "   before you approve it."
-    echo 4 > .state
+  elif [ "$obs" = thyme ]; then
+    echo "MODEL: The returned result says thyme. DONE."
+    echo "PAUSE: that confident answer is WRONG. The chef's note requires B."
+    echo "Reading a file proves what it contains, not that its contents are correct."
+    echo "SIMULATION NOT COMPLETE. Replay with: bash llm.sh restart"
+    questions; echo 7 > .state
   else
-    echo
-    echo "THE LLM SAYS: I could not read my answer. Something went wrong."
-    echo "   Please run my request again."
-    echo "   $req_check"
-    read_job
+    echo "No usable read-back received. Run the requested command."
+    request 'cat answer.txt > observation.txt'
   fi ;;
-6)
-  if [ "$obs" = "basil" ]; then
-    echo; echo "$line"; echo "THE LLM SAYS:  I read answer.txt, and it says: basil."
-    echo; echo "DONE!  The missing ingredient is basil."; echo "$line"
-    echo
-    echo "You caught my mistake! The LLM first chose thyme. YOU (the human) said no."
-    echo "That is the human's job: DIRECT the agent, APPROVE what is risky, and VERIFY the result."
-    echo
-    echo "What you did is what every AI agent loop does, with a human in it:"
-    echo "   think -> ask for a tool -> the human approves -> the harness runs it -> the result goes back -> repeat"
-    questions
-    echo
-    echo "PLAY AGAIN (optional):   bash llm.sh restart"
-    echo 4 > .state
-  else
-    echo
-    echo "THE LLM SAYS: I read answer.txt, and it does not say basil. Please write it again."
-    echo "   $req_ok"
-    write_job
-    echo 5 > .state
-  fi ;;
-*)
-  echo "The game is finished. To play again, type:   bash llm.sh restart" ;;
+4) echo "Run bash check.sh and discuss your verification with your neighbor." ;;
+7) echo "The wrong answer was accepted. Try again: bash llm.sh restart" ;;
+*) echo "Invalid game state. Restart with: bash llm.sh restart"; exit 1 ;;
 esac
 LLM
-chmod +x llm.sh
-
-echo ""
-echo "Be the Harness is ready!  Now type:   cd ~/agent-loop"
-echo "and then:                           cat START-HERE.txt"
+cat > check.sh << 'CHECK'
+#!/usr/bin/env bash
+set -eu
+cd -- "$(dirname "$0")"
+if [ -f answer.txt ] && [ "$(cat answer.txt)" = basil ] \
+  && [ "$(cat observation.txt)" = basil ] && [ "$(cat .state)" = 4 ]; then
+  echo "PASS: the answer matches the recipe and was read back."
+  echo "Explain the first mistake, who ran the tools, and how you verified the result."
+  exit 0
+fi
+echo "NOT YET: complete the loop and check the answer against the chef's note."
+echo "If you accepted the wrong answer, replay with: bash llm.sh restart"
+exit 1
+CHECK
+chmod +x llm.sh check.sh
+echo "Be the Harness is ready. Type: cd ~/agent-loop"
+echo "Then: cat START-HERE.txt"

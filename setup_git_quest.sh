@@ -2,11 +2,32 @@
 # Exercise 1 - Git Quest
 # Creates the folder ~/git-quest: a real Git repository with a story and clues.
 # Also creates ~/git-quest-check.sh, which checks your progress.
-# Works on Ubuntu (WSL) and on Mac.
+# For Bash on Ubuntu (WSL) and macOS; Git 2.28 or newer.
 
-set -e
-cd "$HOME"
-rm -rf git-quest git-quest-check.sh
+set -eu
+# TA1_WORKSPACE is optional; by default the games live in your home folder.
+root="${TA1_WORKSPACE:-$HOME}"
+cd -- "$root"
+root=$(pwd -P)
+case "${1:-}" in
+  ""|--reset) ;;
+  *) echo "Usage: bash $(basename "$0") [--reset]" >&2; exit 2 ;;
+esac
+for tool in bash cat mkdir mv grep sed git; do
+  command -v "$tool" >/dev/null 2>&1 || { echo "Missing command: $tool. See the course setup instructions." >&2; exit 1; }
+done
+if [ -e "$root/git-quest" ] || [ -L "$root/git-quest" ] || [ -e "$root/git-quest-check.sh" ] || [ -L "$root/git-quest-check.sh" ]; then
+  if [ "${1:-}" != --reset ]; then
+    echo "The git-quest game already exists. Your progress has been kept."
+    echo "To start again, run: bash ~/$(basename "$0") --reset"
+    echo "Reset moves the previous game into a backup folder first."
+    exit 1
+  fi
+  backup=$(mktemp -d "$root/.ta1-git-quest-backup.XXXXXX")
+  if [ -e "$root/git-quest" ] || [ -L "$root/git-quest" ]; then mv -- "$root/git-quest" "$backup/"; fi
+  if [ -e "$root/git-quest-check.sh" ] || [ -L "$root/git-quest-check.sh" ]; then mv -- "$root/git-quest-check.sh" "$backup/"; fi
+  echo "Previous progress backed up to: $backup"
+fi
 mkdir git-quest
 cd git-quest
 git init -q -b main
@@ -18,7 +39,8 @@ qm() { git -c user.name="Quest Master" -c user.email="quest@example.com" "$@"; }
 cat > START-HERE.txt << 'TXT'
 WELCOME, TIME TRAVELER!
 
-This folder is a Git repository. Git has been watching it and saving its history.
+This folder is a Git repository. The setup script saved some commits for you.
+Git saves a new version only when you make a commit.
 Your mission: follow the clues, one level at a time.
 
 HOW TO PLAY
@@ -86,7 +108,8 @@ Step 3.  Type:   ls
 
 YOU LEARNED:
   A branch is a separate timeline of save points.
-  You can travel between timelines, and the files change.
+  You can travel between timelines, and tracked files change.
+  Commit your changes before switching; unsaved changes may follow you.
 
 NEXT:  type   cat LEVEL-3.txt
 TXT
@@ -114,7 +137,8 @@ Step 4.  Type:   git diff
          Lines that start with + are new.
 
 Step 5.  Type:   git restore treasure-map.txt
-         It means: "Go back to the last save point for this file."
+         It means: "Discard unstaged edits to this tracked file."
+         Here, we did not stage the edit, so this returns to the saved map.
 
 Step 6.  Type:   cat treasure-map.txt
          The vandal line is gone.
@@ -152,6 +176,7 @@ Step 2.  Type:   git status
          It means: "What does Git see now?"
          You should see: explorer.txt is "untracked".
          Git sees the file, but does not save it yet.
+         The file is plain text. Its .txt ending is part of its name.
 
 Step 3.  Type:   git add explorer.txt
          It means: "Put the file in the basket."
@@ -159,6 +184,11 @@ Step 3.  Type:   git add explorer.txt
 Step 4.  Type:   git commit -m "Explorer arrived at the cave"
          It means: "Take the photo, with a label."
          You may write your own label between the quotation marks.
+         If Git says "Author identity unknown", set your identity for THIS game:
+           git config user.name "Your Name"
+           git config user.email "your.email@example.com"
+         Replace the example values with your own name and email, then retry.
+         These two commands affect only this repository.
 
 Step 5.  Type:   git log --oneline
          Your save point is now at the top of the list.
@@ -184,39 +214,39 @@ qm commit -q -m "Add a wrong way sign"
 qm switch -q main
 
 # ---------- checker (outside the repository) ----------
-cat > "$HOME/git-quest-check.sh" << 'CHK'
+cat > "$root/git-quest-check.sh" << 'CHK'
 #!/usr/bin/env bash
-# Checks your progress in the Git Quest.
-cd "$HOME/git-quest" 2>/dev/null || { echo "Folder ~/git-quest not found. Run setup_git_quest.sh first."; exit 1; }
-ok=0
+# Checks the final Git state, not which commands you personally typed.
+set -eu
+root="${TA1_WORKSPACE:-$HOME}"
+cd "$root/git-quest" 2>/dev/null || { echo "Run setup_git_quest.sh first."; exit 1; }
 echo "Git Quest check"
 echo "---------------"
-# Level 3: a save point by you (not by the Quest Master) with explorer.txt on the cave timeline
-mine=$(git log cave --format=%an 2>/dev/null | grep -vc "Quest Master")
-if [ "$mine" -ge 1 ] && git cat-file -e cave:explorer.txt 2>/dev/null; then
-  echo "[OK]  Level 3: you made your own save point on the cave timeline"
-  l3=1
-else
-  echo "[ ]   Level 3: not yet. On the cave timeline: create explorer.txt, then git add and git commit"
-  l3=0
+l3=0; l4=0
+if git rev-parse --verify cave >/dev/null 2>&1 && git cat-file -e cave:explorer.txt 2>/dev/null; then
+  if [ -n "$(git log cave --format=%H -- explorer.txt)" ] && [ -n "$(git show cave:explorer.txt)" ]; then
+    echo "[OK] Level 3: explorer.txt is saved in a commit on cave"
+    l3=1
+  fi
 fi
-# Level 4: you are on main, the map is clean and has no vandal line
+if [ "$l3" = 0 ]; then echo "[ ] Level 3: save your name in explorer.txt on cave; add and commit it."; fi
 branch=$(git branch --show-current)
-if [ "$branch" = "main" ] && git diff --quiet && ! grep -q "OOPS" treasure-map.txt 2>/dev/null; then
-  echo "[OK]  Level 4: you are on main and the map is clean"
+if [ "$branch" = main ] && [ -z "$(git status --porcelain)" ] && [ -f treasure-map.txt ] && ! grep -q OOPS treasure-map.txt; then
+  echo "[OK] Level 4: on main, with no staged, unstaged, or untracked changes"
   l4=1
 else
-  echo "[ ]   Level 4: not yet. Be on main, and make sure  git status  is clean"
-  l4=0
+  echo "[ ] Level 4: return to main and check git status. The map must be restored."
 fi
 echo "---------------"
 if [ "$l3" = 1 ] && [ "$l4" = 1 ]; then
   echo "ALL LEVELS DONE! Show this screen to your TA."
-else
-  echo "Keep going. Read the clue files again if you are stuck."
+  echo "Explain what git add, git commit, git diff, and git restore did."
+  exit 0
 fi
+echo "Keep going. Read the clue files again."
+exit 1
 CHK
-chmod +x "$HOME/git-quest-check.sh"
+chmod +x "$root/git-quest-check.sh"
 
 echo ""
 echo "Git Quest ready!  Now type:   cd ~/git-quest"

@@ -1,32 +1,30 @@
-# Project Proposal (draft)
+# Project proposal (draft)
 
-**Name:**
+**Name(s):**
 **Date:**
 
-## 1. The problem
-What engineering or research problem do you want to work on? Write 2-3 simple sentences.
-Why does it matter?
+Write short answers to the three questions from the slides. A candidate simulator
+and honest open questions are enough today. You are not expected to build it yet.
 
-## 2. The simulator (the "ground")
-Which simulator or model will the agent use?
-- What does it compute?
-- Can it run on your laptop?
-- Can you control it with a text input file (for example YAML or JSON)?
+## 1. The problem and goal
+What engineering or research problem will you work on? Why does it matter?
+What should improve, and how will you measure it?
+What constraints must be respected?
 
-## 3. What can the agent change?
-List the input variables the agent may change (for example temperature, pressure, flow rate).
-Write a range for each one if you know it.
+**Our answer:**
 
-## 4. What do we want to improve?
-Choose one or more: yield, energy efficiency, selectivity, other.
-How will you measure it?
+## 2. The simulator
+Which program or model could compute how the system behaves?
+What inputs does it take and what outputs does it compute?
+Can it run on your laptop and accept text-based inputs (for example JSON or YAML)?
+If you have not chosen a simulator yet, name a candidate or say what you need to find.
 
-## 5. Constraints
-What must the design never do? (safety limits, cost, equipment limits...)
+**Our answer:**
 
-## 6. The for-loop test
-If we delete the AI, could a simple grid search on the simulator do the same job?
-Write your honest answer, and why.
+## 3. The agent's job
+What may the agent decide or change? Give candidate variables and ranges if known.
+What reasoning might it contribute beyond running the simulator?
+The for-loop test: if you remove the LLM, could a simple search do just as well?
+What is one thing you still need to find out?
 
-## 7. What I do not know yet
-Write at least one open question.
+**Our answer:**

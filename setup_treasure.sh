@@ -1,13 +1,31 @@
 #!/usr/bin/env bash
 # Exercise 1 - Terminal Treasure Hunt
 # Creates the folder ~/treasure with a chain of clues.
-# Works on Ubuntu (WSL) and on Mac.
+# For Bash on Ubuntu (WSL) and macOS.
 
-set -e
-cd "$HOME"
-
-# Start fresh if the hunt already exists
-rm -rf treasure
+set -eu
+# TA1_WORKSPACE is optional; by default the games live in your home folder.
+root="${TA1_WORKSPACE:-$HOME}"
+cd -- "$root"
+root=$(pwd -P)
+case "${1:-}" in
+  ""|--reset) ;;
+  *) echo "Usage: bash $(basename "$0") [--reset]" >&2; exit 2 ;;
+esac
+for tool in bash cat mkdir mv grep sed; do
+  command -v "$tool" >/dev/null 2>&1 || { echo "Missing command: $tool. See the course setup instructions." >&2; exit 1; }
+done
+if [ -e "$root/treasure" ] || [ -L "$root/treasure" ]; then
+  if [ "${1:-}" != --reset ]; then
+    echo "The treasure game already exists. Your progress has been kept."
+    echo "To start again, run: bash ~/$(basename "$0") --reset"
+    echo "Reset moves the previous game into a backup folder first."
+    exit 1
+  fi
+  backup=$(mktemp -d "$root/.ta1-treasure-backup.XXXXXX")
+  if [ -e "$root/treasure" ] || [ -L "$root/treasure" ]; then mv -- "$root/treasure" "$backup/"; fi
+  echo "Previous progress backed up to: $backup"
+fi
 
 mkdir -p treasure/start
 mkdir -p treasure/forest/tree treasure/forest/river treasure/forest/cave-of-secrets
@@ -60,6 +78,8 @@ Do these two things:
 
 You are finished when this command shows golden_key.txt:
   ls ~/treasure/done
+Also check that the key is no longer in mountain:
+  ls ~/treasure/mountain
 
 BONUS for fast finishers: there is a hidden file in this folder.
 Hidden files start with a dot. Try:  ls -a

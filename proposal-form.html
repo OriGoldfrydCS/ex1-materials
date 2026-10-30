@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TA1 · Project topic draft</title>
+<style>
+:root{color-scheme:light;--ink:#15202b;--teal:#0b6a73;--paper:#f6f4ee}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 system-ui,Segoe UI,Arial,sans-serif}header{background:var(--ink);color:white;padding:44px max(24px,calc((100% - 880px)/2))}header p{color:#c9d6dd;margin:8px 0}.eyebrow{color:#7fd4cd!important;font-size:14px;font-weight:700;letter-spacing:.08em}h1{font-size:clamp(30px,5vw,43px);line-height:1.15;margin:10px 0 16px}main{max-width:928px;margin:28px auto;padding:0 24px 70px}h2{font-size:25px;line-height:1.3;margin:0 0 12px}section{padding:28px 0;border-top:1px solid #ccd4d3}section:first-of-type{border:0;padding-top:16px}label{font-weight:650;display:block;margin:12px 0 7px}input,textarea{font:inherit;background:#fff;border:1px solid #8b9a9e;border-radius:6px;padding:12px;width:100%;color:var(--ink)}textarea{min-height:190px;resize:vertical;line-height:1.6}input:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:3px solid #18a59d;outline-offset:3px}.meta{display:grid;grid-template-columns:2fr 1fr;gap:20px}.hint{color:#44535c;margin:0 0 15px;font-size:16px}.actions{display:flex;flex-wrap:wrap;gap:12px;margin:22px 0}button{font:inherit;font-weight:650;padding:12px 18px;border:1px solid var(--teal);border-radius:6px;cursor:pointer;color:var(--teal);background:white}button.primary{background:var(--teal);color:white}button:hover{filter:brightness(.94)}#status{min-height:28px;color:var(--teal);font-weight:650}.note{padding:18px 0;color:#44535c}details{border-top:1px solid #ccd4d3;padding-top:20px}summary{cursor:pointer;font-weight:650}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:white;border:1px solid #ccd4d3;padding:20px;font:15px/1.6 ui-monospace,monospace}a{color:var(--teal)}.print-copy{display:none}@media(max-width:600px){.meta{grid-template-columns:1fr;gap:0}header{padding:30px 24px}main{padding:0 20px 40px}textarea{min-height:230px}.actions{flex-direction:column}button{width:100%}}@media print{header{background:white;color:black;padding:0}header p{color:#333}.eyebrow{color:#333!important}main{padding:0;margin:20px 0;max-width:none}.actions,.note,details,#status{display:none}.meta{grid-template-columns:2fr 1fr}section{break-inside:avoid}textarea,input{display:none}.print-copy{display:block;white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0}h1{font-size:28px}h2{font-size:21px}}
+</style>
+</head>
+<body>
+<header><p class="eyebrow">TA SESSION 1 · YOUR PROJECT</p><h1>A topic you can explain</h1><p>Three short answers to begin your engineering or research project.</p></header>
+<main>
+<p>A rough draft is enough today. Name a candidate simulator and say honestly what you still need to find out.</p>
+<p class="hint">This form runs in your browser. It does not submit your answers to the course staff. Download your draft, save it in your project, and show it to a TA.</p>
+<form id="proposal">
+<div class="meta">
+<div><label for="names">Your name(s)</label><input id="names" name="names" autocomplete="name" required dir="auto"><div class="print-copy" data-copy="names"></div></div>
+<div><label for="date">Date</label><input id="date" name="date" type="date" required><div class="print-copy" data-copy="date"></div></div>
+</div>
+<section><h2>1. The problem and goal</h2><p class="hint" id="problem-help">What problem matters? What should improve, and how will you measure it? What limits must be respected?</p><label for="problem">Your answer</label><textarea id="problem" name="problem" required aria-describedby="problem-help" dir="auto"></textarea><div class="print-copy" data-copy="problem"></div></section>
+<section><h2>2. The simulator</h2><p class="hint" id="simulator-help">Which program or model could compute the result? What inputs and outputs does it have? Can it run on your laptop and accept text inputs? A candidate or an open question is fine.</p><label for="simulator">Your answer</label><textarea id="simulator" name="simulator" required aria-describedby="simulator-help" dir="auto"></textarea><div class="print-copy" data-copy="simulator"></div></section>
+<section><h2>3. The agent's job</h2><p class="hint" id="agent-help">What may the agent decide or change? Why might it need reasoning? If you remove the LLM, could a simple search do just as well? Include one thing you still need to find out.</p><label for="agent">Your answer</label><textarea id="agent" name="agent" required aria-describedby="agent-help" dir="auto"></textarea><div class="print-copy" data-copy="agent"></div></section>
+<div class="actions"><button class="primary" type="submit">Download proposal-draft.md</button><button type="button" id="save">Save draft in this browser</button><button type="button" id="load">Load saved draft</button><button type="button" id="print">Print / save as PDF</button></div>
+<p id="status" role="status" aria-live="polite"></p>
+</form>
+<p class="note">After downloading, move the file to <strong>my-project/docs/proposal-draft.md</strong>. Keep any previous answers before replacing a file. Save your work in Git using the commands in the repository README. Browser drafts are stored only on this browser/device when you choose “Save draft”.</p>
+<details><summary>Preview the Markdown file</summary><pre id="preview" dir="auto"></pre></details>
+<p><a href="https://github.com/OriGoldfrydCS/ex1-materials">Course practice materials on GitHub</a></p>
+</main>
+<script>
+'use strict';
+const fields=['names','date','problem','simulator','agent'];
+const storageKey='ta1-project-proposal-v1';
+const form=document.getElementById('proposal');
+const status=document.getElementById('status');
+const now=new Date();
+document.getElementById('date').value=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');
+function values(){return Object.fromEntries(fields.map(id=>[id,document.getElementById(id).value.trim()]));}
+function markdown(){const v=values();return `# Project proposal (draft)\n\n**Name(s):** ${v.names}\n**Date:** ${v.date}\n\n## 1. The problem and goal\n${v.problem}\n\n## 2. The simulator\n${v.simulator}\n\n## 3. The agent's job\n${v.agent}\n`;}
+function refresh(){document.getElementById('preview').textContent=markdown();const v=values();document.querySelectorAll('[data-copy]').forEach(el=>{el.textContent=v[el.dataset.copy];});}
+form.addEventListener('input',refresh);
+form.addEventListener('submit',event=>{event.preventDefault();if(!form.reportValidity())return;const blob=new Blob([markdown()],{type:'text/markdown;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='proposal-draft.md';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);status.textContent='Downloaded. Move the file into your project’s docs folder, then show it to a TA.';});
+document.getElementById('save').addEventListener('click',()=>{try{localStorage.setItem(storageKey,JSON.stringify(values()));status.textContent='Draft saved in this browser. Download the Markdown file before switching devices.';}catch{status.textContent='Browser storage is unavailable. Download the Markdown file to keep your work.';}});
+document.getElementById('load').addEventListener('click',()=>{try{const raw=localStorage.getItem(storageKey);if(!raw){status.textContent='No saved draft found in this browser.';return;}const saved=JSON.parse(raw);if(typeof saved!=='object'||saved===null)throw new Error('Invalid draft');if(fields.some(id=>id!=='date'&&document.getElementById(id).value.trim())&&!window.confirm('Replace the current answers with the saved browser draft?'))return;for(const id of fields){if(typeof saved[id]==='string')document.getElementById(id).value=saved[id];}refresh();status.textContent='Saved draft loaded.';}catch{status.textContent='Could not load a browser draft. Your current answers are unchanged.';}});
+document.getElementById('print').addEventListener('click',()=>{if(form.reportValidity()){refresh();window.print();}});
+refresh();
+</script>
+</body>
+</html>
