@@ -156,7 +156,7 @@ YOU LEARNED:
 QUEST COMPLETE!
 =================================================
 Type:   bash ~/TA1/git-quest-check.sh
-and show the screen to your TA.
+Then do the self-check, alone or with your neighbor.
 TXT
 qm add treasure-map.txt LEVEL-2.txt LEVEL-4.txt
 qm commit -q -m "Add the treasure map"
@@ -240,8 +240,17 @@ else
 fi
 echo "---------------"
 if [ "$l3" = 1 ] && [ "$l4" = 1 ]; then
-  echo "ALL LEVELS DONE! Show this screen to your TA."
-  echo "Explain what git add, git commit, git diff, and git restore did."
+  echo "FINAL STATE CHECK PASSED"
+  echo "This checks the final state, not which commands you typed."
+  echo
+  echo "SELF-CHECK: alone or with your neighbor, can you explain these terms?"
+  echo "  - Repository and branch: what are main and cave?"
+  echo "  - Working tree: what do untracked and modified mean?"
+  echo "  - Staging: what does git add prepare?"
+  echo "  - Commit and history: what do git commit and git log show?"
+  echo "  - git status and git diff: what does each one tell you?"
+  echo "  - git restore: which edit did it undo in this game?"
+  echo "Use examples from the quest. If unsure, revisit the relevant level."
   exit 0
 fi
 echo "Keep going. Read the clue files again."
