@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # Exercise 1 - Terminal Treasure Hunt
-# Creates the folder ~/treasure with a chain of clues.
+# Creates the folder ~/TA1/treasure with a chain of clues.
 # For Bash on Ubuntu (WSL) and macOS.
 
 set -eu
-# TA1_WORKSPACE is optional; by default the games live in your home folder.
-root="${TA1_WORKSPACE:-$HOME}"
+# TA1_WORKSPACE is optional; by default the games live in ~/TA1.
+root="${TA1_WORKSPACE:-$HOME/TA1}"
+mkdir -p -- "$root"
 cd -- "$root"
 root=$(pwd -P)
 case "${1:-}" in
@@ -18,7 +19,7 @@ done
 if [ -e "$root/treasure" ] || [ -L "$root/treasure" ]; then
   if [ "${1:-}" != --reset ]; then
     echo "The treasure game already exists. Your progress has been kept."
-    echo "To start again, run: bash ~/$(basename "$0") --reset"
+    echo "To start again, run: bash ~/TA1/$(basename "$0") --reset"
     echo "Reset moves the previous game into a backup folder first."
     exit 1
   fi
@@ -77,9 +78,9 @@ Do these two things:
      (Hint: mv)
 
 You are finished when this command shows golden_key.txt:
-  ls ~/treasure/done
+  ls ~/TA1/treasure/done
 Also check that the key is no longer in mountain:
-  ls ~/treasure/mountain
+  ls ~/TA1/treasure/mountain
 
 BONUS for fast finishers: there is a hidden file in this folder.
 Hidden files start with a dot. Try:  ls -a
@@ -98,5 +99,5 @@ We will see them again soon.
 TXT
 
 echo ""
-echo "Treasure hunt ready!  Now type:   cd ~/treasure"
+echo "Treasure hunt ready!  Now type:   cd ~/TA1/treasure"
 echo "and then:                         cat README.txt"

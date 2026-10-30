@@ -2,8 +2,9 @@
 # Be the Harness: a scripted simulation. No model, API key, or Python needed.
 # For Bash on Ubuntu (WSL) and macOS.
 set -eu
-# TA1_WORKSPACE is optional; by default the games live in your home folder.
-root="${TA1_WORKSPACE:-$HOME}"
+# TA1_WORKSPACE is optional; by default the games live in ~/TA1.
+root="${TA1_WORKSPACE:-$HOME/TA1}"
+mkdir -p -- "$root"
 cd -- "$root"
 root=$(pwd -P)
 case "${1:-}" in
@@ -16,7 +17,7 @@ done
 if [ -e "$root/agent-loop" ] || [ -L "$root/agent-loop" ]; then
   if [ "${1:-}" != --reset ]; then
     echo "The agent-loop game already exists. Your progress has been kept."
-    echo "To start again, run: bash ~/$(basename "$0") --reset"
+    echo "To start again, run: bash ~/TA1/$(basename "$0") --reset"
     echo "Reset moves the previous game into a backup folder first."
     exit 1
   fi
@@ -171,5 +172,5 @@ echo "If you accepted the wrong answer, replay with: bash llm.sh restart"
 exit 1
 CHECK
 chmod +x llm.sh check.sh
-echo "Be the Harness is ready. Type: cd ~/agent-loop"
+echo "Be the Harness is ready. Type: cd ~/TA1/agent-loop"
 echo "Then: cat START-HERE.txt"

@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # Exercise 1 - Git Quest
-# Creates the folder ~/git-quest: a real Git repository with a story and clues.
-# Also creates ~/git-quest-check.sh, which checks your progress.
+# Creates the folder ~/TA1/git-quest: a real Git repository with a story and clues.
+# Also creates ~/TA1/git-quest-check.sh, which checks your progress.
 # For Bash on Ubuntu (WSL) and macOS; Git 2.28 or newer.
 
 set -eu
-# TA1_WORKSPACE is optional; by default the games live in your home folder.
-root="${TA1_WORKSPACE:-$HOME}"
+# TA1_WORKSPACE is optional; by default the games live in ~/TA1.
+root="${TA1_WORKSPACE:-$HOME/TA1}"
+mkdir -p -- "$root"
 cd -- "$root"
 root=$(pwd -P)
 case "${1:-}" in
@@ -19,7 +20,7 @@ done
 if [ -e "$root/git-quest" ] || [ -L "$root/git-quest" ] || [ -e "$root/git-quest-check.sh" ] || [ -L "$root/git-quest-check.sh" ]; then
   if [ "${1:-}" != --reset ]; then
     echo "The git-quest game already exists. Your progress has been kept."
-    echo "To start again, run: bash ~/$(basename "$0") --reset"
+    echo "To start again, run: bash ~/TA1/$(basename "$0") --reset"
     echo "Reset moves the previous game into a backup folder first."
     exit 1
   fi
@@ -154,7 +155,7 @@ YOU LEARNED:
 =================================================
 QUEST COMPLETE!
 =================================================
-Type:   bash ~/git-quest-check.sh
+Type:   bash ~/TA1/git-quest-check.sh
 and show the screen to your TA.
 TXT
 qm add treasure-map.txt LEVEL-2.txt LEVEL-4.txt
@@ -218,7 +219,7 @@ cat > "$root/git-quest-check.sh" << 'CHK'
 #!/usr/bin/env bash
 # Checks the final Git state, not which commands you personally typed.
 set -eu
-root="${TA1_WORKSPACE:-$HOME}"
+root="${TA1_WORKSPACE:-$HOME/TA1}"
 cd "$root/git-quest" 2>/dev/null || { echo "Run setup_git_quest.sh first."; exit 1; }
 echo "Git Quest check"
 echo "---------------"
@@ -249,5 +250,5 @@ CHK
 chmod +x "$root/git-quest-check.sh"
 
 echo ""
-echo "Git Quest ready!  Now type:   cd ~/git-quest"
+echo "Git Quest ready!  Now type:   cd ~/TA1/git-quest"
 echo "and then:                     cat START-HERE.txt"

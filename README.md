@@ -5,6 +5,9 @@ Practice terminal navigation, Git, and a simulated agent loop. Then draft your p
 Use **Ubuntu (WSL)** on Windows or **Terminal with Bash** on macOS.
 Run one command at a time and read its output. Do not include a prompt symbol such as `$`.
 
+All game downloads and game folders live inside `~/TA1`. Your semester project
+uses its separate `~/my-project` folder.
+
 ## Requirements
 
 Use the tools from the course's existing setup instructions: Bash, Git (2.28+),
@@ -12,33 +15,34 @@ curl, and standard command-line utilities. No Python packages, model download,
 AI subscription, or API key is needed for these games. The agent game is scripted.
 Use any text editor for the Markdown files; VS Code is optional.
 
-## 1. Terminal Treasure Hunt 
+## 1. Terminal Treasure Hunt (10 minutes)
 
 ```bash
-cd ~
+mkdir -p ~/TA1
+cd ~/TA1
 curl -fLO https://raw.githubusercontent.com/OriGoldfrydCS/ex1-materials/main/setup_treasure.sh
-bash ~/setup_treasure.sh
-cd ~/treasure
+bash ~/TA1/setup_treasure.sh
+cd ~/TA1/treasure
 cat README.txt
 ```
 
-Follow the clues. Finish when `golden_key.txt` is in `~/treasure/done` and no longer
-in `~/treasure/mountain`. Explain which command moved it.
+Follow the clues. Finish when `golden_key.txt` is in `~/TA1/treasure/done` and no longer
+in `~/TA1/treasure/mountain`. Explain which command moved it.
 
-## 2. Git Quest 
+## 2. Git Quest (15 minutes)
 
 ```bash
-cd ~
+cd ~/TA1
 curl -fLO https://raw.githubusercontent.com/OriGoldfrydCS/ex1-materials/main/setup_git_quest.sh
-bash ~/setup_git_quest.sh
-cd ~/git-quest
+bash ~/TA1/setup_git_quest.sh
+cd ~/TA1/git-quest
 cat START-HERE.txt
 ```
 
 Follow all four levels. Finish with:
 
 ```bash
-bash ~/git-quest-check.sh
+bash ~/TA1/git-quest-check.sh
 ```
 
 The checker must print `ALL LEVELS DONE`. Also explain `git add`, `git commit`,
@@ -55,13 +59,13 @@ git config user.email "your.email@example.com"
 Replace the example values with your own. Retry the commit. These settings are local
 to the current repository. If your project later needs them, configure them there too.
 
-## 3. Be the Harness
+## 3. Be the Harness (12 minutes, followed by discussion)
 
 ```bash
-cd ~
+cd ~/TA1
 curl -fLO https://raw.githubusercontent.com/OriGoldfrydCS/ex1-materials/main/setup_agent_loop.sh
-bash ~/setup_agent_loop.sh
-cd ~/agent-loop
+bash ~/TA1/setup_agent_loop.sh
+cd ~/TA1/agent-loop
 cat START-HERE.txt
 ```
 
@@ -71,7 +75,7 @@ Finish when `bash check.sh` reports `PASS` and you can explain the error and you
 A model's `DONE` claim alone does not establish correctness.
 
 The setup creates `llm.sh` and `check.sh`; you do not download those separately.
-Similarly, Git Quest creates `~/git-quest-check.sh` for you.
+Similarly, Git Quest creates `~/TA1/git-quest-check.sh` for you.
 
 ## 4. Project topic and disclosure
 
@@ -111,14 +115,14 @@ Running a setup script again without `--reset` stops and keeps your work.
 An explicit reset moves the old game into a backup folder before building a new one:
 
 ```bash
-bash ~/setup_treasure.sh --reset
-bash ~/setup_git_quest.sh --reset
-bash ~/setup_agent_loop.sh --reset
+bash ~/TA1/setup_treasure.sh --reset
+bash ~/TA1/setup_git_quest.sh --reset
+bash ~/TA1/setup_agent_loop.sh --reset
 ```
 
 Only run the reset for the game you want to restart. The script prints the backup
 location. To replay just the agent conversation, use `bash llm.sh restart` inside
-`~/agent-loop`; that clears only the simulation's answer, history and observations.
+`~/TA1/agent-loop`; that clears only the simulation's answer, history and observations.
 
 ## If a download fails
 
@@ -127,18 +131,20 @@ Open this repository in your browser, select the script, and use **Download raw 
 If the course page provides an offline copy, you can use that copy instead.
 
 On Windows, find your Windows user folder with `ls /mnt/c/Users/`, then copy the file
-from Downloads into Ubuntu. Replace NAME and use the relevant script filename:
+from Downloads into the TA1 folder in Ubuntu. Replace NAME and use the relevant script filename:
 
 ```bash
-cp "/mnt/c/Users/NAME/Downloads/setup_treasure.sh" ~/
-bash ~/setup_treasure.sh
+mkdir -p ~/TA1
+cp "/mnt/c/Users/NAME/Downloads/setup_treasure.sh" ~/TA1/
+bash ~/TA1/setup_treasure.sh
 ```
 
 On macOS:
 
 ```bash
-cp ~/Downloads/setup_treasure.sh ~/
-bash ~/setup_treasure.sh
+mkdir -p ~/TA1
+cp ~/Downloads/setup_treasure.sh ~/TA1/
+bash ~/TA1/setup_treasure.sh
 ```
 
 Repository text files use LF line endings. Upload the supplied files as files,
