@@ -59,25 +59,7 @@ git config user.email "your.email@example.com"
 Replace the example values with your own. Retry the commit. These settings are local
 to the current repository. If your project later needs them, configure them there too.
 
-## 3. Be the Harness
-
-```bash
-cd ~/TA1
-curl -fLO https://raw.githubusercontent.com/OriGoldfrydCS/ex1-materials/main/setup_agent_loop.sh
-bash ~/TA1/setup_agent_loop.sh
-cd ~/TA1/agent-loop
-cat START-HERE.txt
-```
-
-Start with `bash llm.sh`. You play the harness (run approved commands) and the human
-(check requests and results). Refuse with `bash llm.sh no` **without running the request**.
-Finish when `bash check.sh` reports `PASS` and you can explain the error and your check.
-A model's `DONE` claim alone does not establish correctness.
-
-The setup creates `llm.sh` and `check.sh`; you do not download those separately.
-Similarly, Git Quest creates `~/TA1/git-quest-check.sh` for you.
-
-## 4. Project topic and disclosure
+## 3. Project topic and disclosure
 
 You can answer the three questions directly in the Markdown template, or use
 the [browser form](proposal-form.html). On GitHub, choose **Download raw file** for
